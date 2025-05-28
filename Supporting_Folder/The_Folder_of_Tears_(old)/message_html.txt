@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Τραπεζικό Σύστημα</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 95%;
+        max-width: 600px;
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .screen {
+        display: none;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .screen.active {
+        display: flex;
+      }
+
+      input,
+      button,
+      select {
+        font-size: 1.2rem;
+        padding: 0.7rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .password-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .password-container input {
+        flex: 1;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #007bff;
+      }
+
+      @media (max-width: 600px) {
+        h2 {
+          font-size: 1.5rem;
+        }
+
+        input,
+        button,
+        select {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Τραπεζικό Σύστημα</h2>
+      <div id="loginScreen" class="screen active">
+        <input type="text" id="loginHolder" placeholder="Όνομα Κατόχου" />
+        <div class="password-container">
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Κωδικός Πρόσβασης"
+          />
+          <button
+            class="toggle-password"
+            onclick="togglePassword('loginPassword')"
+          >
+            👁️
+          </button>
+        </div>
+        <button onclick="login()">Είσοδος</button>
+        <button onclick="showCreateAccount()">Δημιουργία Λογαριασμού</button>
+      </div>
+
+      <div id="createScreen" class="screen">
+        <input
+          type="text"
+          id="createNumber"
+          placeholder="Αριθμός Λογαριασμού"
+          readonly
+        />
+        <input
+          type="text"
+          id="createHolder"
+          placeholder="Κατόχου Λογαριασμού"
+        />
+        <div class="password-container">
+          <input
+            type="password"
+            id="createPassword"
+            placeholder="Κωδικός Πρόσβασης"
+          />
+          <button
+            class="toggle-password"
+            onclick="togglePassword('createPassword')"
+          >
+            👁️
+          </button>
+        </div>
+        <input type="number" id="createBalance" placeholder="Αρχικό Υπόλοιπο" />
+        <div class="actions">
+          <button onclick="createAccount()">Δημιουργία</button>
+          <button onclick="goBack('createScreen')">Πίσω</button>
+        </div>
+      </div>
+
+      <div id="menuScreen" class="screen">
+        <div class="actions">
+          <button onclick="showScreen('depositScreen')">Κατάθεση</button>
+          <button onclick="showScreen('withdrawScreen')">Ανάληψη</button>
+          <button onclick="showScreen('transferScreen')">Μεταφορά</button>
+          <button onclick="displayAccount()">Προβολή Λογαριασμού</button>
+          <button onclick="logout()">Αποσύνδεση</button>
+        </div>
+      </div>
+
+      <div id="depositScreen" class="screen">
+        <input type="number" id="depositAmount" placeholder="Ποσό Κατάθεσης" />
+        <div class="actions">
+          <button onclick="deposit()">Κατάθεση</button>
+          <button onclick="goBack('depositScreen')">Πίσω</button>
+        </div>
+      </div>
+
+      <div id="withdrawScreen" class="screen">
+        <input type="number" id="withdrawAmount" placeholder="Ποσό Ανάληψης" />
+        <div class="actions">
+          <button onclick="withdraw()">Ανάληψη</button>
+          <button onclick="goBack('withdrawScreen')">Πίσω</button>
+        </div>
+      </div>
+
+      <div id="transferScreen" class="screen">
+        <input
+          type="text"
+          id="transferTo"
+          placeholder="Αριθμός Λογαριασμού Παραλήπτη"
+        />
+        <input type="number" id="transferAmount" placeholder="Ποσό Μεταφοράς" />
+        <div class="actions">
+          <button onclick="transfer()">Μεταφορά</button>
+          <button onclick="goBack('transferScreen')">Πίσω</button>
+        </div>
+      </div>
+
+      <div id="accountInfo" class="screen">
+        <div id="accountDetails"></div>
+        <button onclick="goBack('accountInfo')">Πίσω</button>
+      </div>
+    </div>
+
+    <script>
+      let accounts = JSON.parse(localStorage.getItem("accounts") || "[]");
+      let currentAccount = null;
+
+      function saveAccounts() {
+        localStorage.setItem("accounts", JSON.stringify(accounts));
+      }
+
+      function showScreen(screenId) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(screenId).classList.add("active");
+      }
+
+      function clearInputs(screenId) {
+        document.querySelectorAll(`#${screenId} input`).forEach((input) => {
+          if (!input.hasAttribute("readonly")) input.value = "";
+        });
+      }
+
+      function goBack(fromScreen) {
+        clearInputs(fromScreen);
+        if (fromScreen === "createScreen" || !currentAccount) {
+          currentAccount = null;
+          showScreen("loginScreen");
+        } else {
+          showScreen("menuScreen");
+        }
+      }
+
+      function login() {
+        const holder = document.getElementById("loginHolder").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        const acc = accounts.find(
+          (a) => a.holder === holder && a.password === password
+        );
+        if (acc) {
+          currentAccount = acc;
+          showScreen("menuScreen");
+          clearInputs("loginScreen");
+        } else {
+          alert("Λάθος στοιχεία!");
+        }
+      }
+
+      function showCreateAccount() {
+        document.getElementById("createNumber").value = generateAccountNumber();
+        clearInputs("createScreen");
+        showScreen("createScreen");
+      }
+
+      function generateAccountNumber() {
+        const randomPart = () => Math.floor(1000 + Math.random() * 9000);
+        return `GR ${randomPart()}-${randomPart()}-${randomPart()}`;
+      }
+
+      function isValidPassword(pw) {
+        const regex =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-{};':"\\|,.<>\/?]).{10,}$/;
+        return regex.test(pw);
+      }
+
+      function createAccount() {
+        const number = document.getElementById("createNumber").value.trim();
+        const holder = document.getElementById("createHolder").value.trim();
+        const password = document.getElementById("createPassword").value.trim();
+        const balanceInput = document
+          .getElementById("createBalance")
+          .value.trim();
+        const balance = parseFloat(balanceInput);
+
+        if (!number || !holder || !password || isNaN(balance) || balance < 0) {
+          alert("Συμπλήρωσε σωστά όλα τα πεδία!");
+          return;
+        }
+
+        if (!isValidPassword(password)) {
+          alert(
+            "Ο κωδικός πρέπει να έχει τουλάχιστον 10 χαρακτήρες, πεζά, κεφαλαία, αριθμούς και ένα ειδικό σύμβολο."
+          );
+          return;
+        }
+
+        if (accounts.some((a) => a.number === number)) {
+          alert("Ο λογαριασμός υπάρχει ήδη!");
+          return;
+        }
+
+        accounts.push({ number, holder, password, balance });
+        saveAccounts();
+        alert("Ο λογαριασμός δημιουργήθηκε!");
+        goBack("createScreen");
+      }
+
+      function deposit() {
+        const amount = parseFloat(
+          document.getElementById("depositAmount").value
+        );
+        if (amount > 0) {
+          currentAccount.balance += amount;
+          saveAccounts();
+          alert("Επιτυχής κατάθεση.");
+          goBack("depositScreen");
+        }
+      }
+
+      function withdraw() {
+        const amount = parseFloat(
+          document.getElementById("withdrawAmount").value
+        );
+        if (amount > 0 && amount <= currentAccount.balance) {
+          currentAccount.balance -= amount;
+          saveAccounts();
+          alert("Επιτυχής ανάληψη.");
+          goBack("withdrawScreen");
+        } else {
+          alert("Ανεπαρκές υπόλοιπο ή μη έγκυρο ποσό.");
+        }
+      }
+
+      function transfer() {
+        const to = document.getElementById("transferTo").value.trim();
+        const amount = parseFloat(
+          document.getElementById("transferAmount").value
+        );
+        const recipient = accounts.find((a) => a.number === to);
+        if (recipient && amount > 0 && amount <= currentAccount.balance) {
+          currentAccount.balance -= amount;
+          recipient.balance += amount;
+          saveAccounts();
+          alert("Επιτυχής μεταφορά.");
+          goBack("transferScreen");
+        } else {
+          alert("Σφάλμα στη μεταφορά.");
+        }
+      }
+
+      function displayAccount() {
+        const info = `Αριθμός: ${currentAccount.number}<br>Κατόχος: ${
+          currentAccount.holder
+        }<br>Υπόλοιπο: €${currentAccount.balance.toFixed(2)}`;
+        document.getElementById("accountDetails").innerHTML = info;
+        showScreen("accountInfo");
+      }
+
+      function logout() {
+        currentAccount = null;
+        showScreen("loginScreen");
+        clearInputs("loginScreen");
+      }
+
+      function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === "password" ? "text" : "password";
+      }
+    </script>
+  </body>
+</html>
