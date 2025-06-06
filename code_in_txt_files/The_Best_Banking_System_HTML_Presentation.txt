@@ -1,0 +1,884 @@
+ <!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureBank | Technical Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --secondary: #3498db;
+        --accent: #e74c3c;
+        --light: #ecf0f1;
+        --dark: #2c3e50;
+        --success: #2ecc71;
+        --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        color: var(--dark);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--light);
+        z-index: 1000;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--secondary), var(--success));
+        width: 0%;
+        transition: width 0.4s ease;
+      }
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 2rem 4rem;
+        display: none; /* Από flex σε none */
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background-color: white;
+        overflow: hidden;
+        z-index: 1;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .slide::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+      }
+
+       .slide.active {
+        display: flex; /* Εμφάνιση μόνο του active slide */
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+
+      .slide.active::before {
+        opacity: 1;
+      }
+
+      h1 {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--primary);
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      h2 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        color: var(--secondary);
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+
+      h2:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: var(--secondary);
+        border-radius: 2px;
+      }
+
+      p {
+        font-size: 1.4rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        max-width: 800px;
+      }
+
+      ul {
+        text-align: left;
+        font-size: 1.3rem;
+        line-height: 1.8;
+        list-style-type: none;
+        max-width: 700px;
+        margin: 0 auto 2rem;
+      }
+
+      ul li {
+        margin-bottom: 1rem;
+        position: relative;
+        padding-left: 2rem;
+        transform: translateX(-20px);
+        opacity: 0;
+        transition: all 0.4s ease;
+      }
+
+      .slide.active ul li {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .slide.active ul li:nth-child(1) { transition-delay: 0.1s; }
+      .slide.active ul li:nth-child(2) { transition-delay: 0.2s; }
+      .slide.active ul li:nth-child(3) { transition-delay: 0.3s; }
+      .slide.active ul li:nth-child(4) { transition-delay: 0.4s; }
+      .slide.active ul li:nth-child(5) { transition-delay: 0.5s; }
+
+      ul li:before {
+        content: "▹";
+        position: absolute;
+        left: 0;
+        color: var(--secondary);
+        font-size: 1.5rem;
+      }
+
+      .code-block {
+        font-family: "Source Code Pro", monospace;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: left;
+        max-width: 800px;
+        margin: 1rem auto;
+        font-size: 1rem;
+        border-left: 4px solid var(--secondary);
+        overflow-x: auto;
+        box-shadow: var(--shadow);
+        transform: scale(0.95);
+        opacity: 0;
+        transition: all 0.5s ease 0.3s;
+      }
+
+      .slide.active .code-block {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .nav-buttons {
+        position: fixed;
+        bottom: 2rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        z-index: 100;
+      }
+
+      button {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.8rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        font-weight: 700;
+        min-width: 160px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      button::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 60%);
+        transform: rotate(30deg);
+        transition: all 0.3s ease;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      }
+
+      button:hover::after {
+        left: 100%;
+      }
+
+      .slide-counter {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 2rem;
+        color: var(--secondary);
+        font-weight: bold;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+
+      .title-slide {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+        color: white;
+      }
+
+      .title-slide h1 {
+        color: white;
+        font-size: 4rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        animation: fadeInDown 1s ease;
+      }
+
+      .title-slide p {
+        font-size: 1.8rem;
+        opacity: 0.9;
+        animation: fadeIn 1s ease 0.3s forwards;
+        opacity: 0;
+      }
+
+      .team-members {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .member {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        backdrop-filter: blur(5px);
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease 0.6s forwards;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+
+      .member:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+      }
+
+      .member:nth-child(1) { animation-delay: 0.6s; }
+      .member:nth-child(2) { animation-delay: 0.8s; }
+      .member:nth-child(3) { animation-delay: 1s; }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .feature-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-top: 4px solid var(--secondary);
+        text-align: left;
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.4s ease;
+      }
+
+      .slide.active .feature-card {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .slide.active .feature-card:nth-child(1) { transition-delay: 0.2s; }
+      .slide.active .feature-card:nth-child(2) { transition-delay: 0.4s; }
+      .slide.active .feature-card:nth-child(3) { transition-delay: 0.6s; }
+
+      .feature-card h3 {
+        color: var(--secondary);
+        margin-bottom: 1rem;
+      }
+
+      .tech-stack {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .tech-item {
+        background: var(--light);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: bold;
+        box-shadow: var(--shadow);
+        transform: scale(0);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .slide.active .tech-item {
+        transform: scale(1);
+      }
+
+      .slide.active .tech-item:nth-child(1) { transition-delay: 0.1s; }
+      .slide.active .tech-item:nth-child(2) { transition-delay: 0.2s; }
+      .slide.active .tech-item:nth-child(3) { transition-delay: 0.3s; }
+      .slide.active .tech-item:nth-child(4) { transition-delay: 0.4s; }
+
+      .highlight {
+        background-color: rgba(241, 196, 15, 0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        color: var(--dark);
+        font-weight: bold;
+      }
+
+      .architecture-img {
+        max-width: 800px;
+        margin: 1rem auto;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+
+      .final-slide h1 {
+        animation: pulse 2s infinite ease-in-out;
+      }
+
+      .workflow-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 1rem auto;
+      }
+
+      .workflow-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+
+      @media (max-width: 768px) {
+        .slide { padding: 2rem; }
+        h1 { font-size: 2.2rem; }
+        h2 { font-size: 1.8rem; }
+        p, ul { font-size: 1.1rem; }
+        .feature-grid { grid-template-columns: 1fr; }
+        .team-members { flex-direction: column; gap: 1rem; }
+      }
+    </style>
+</head>
+<body>
+    <div class="progress-container">
+        <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <!-- Slide 1: Τίτλος & Ομάδα -->
+    <section class="slide active title-slide">
+        <div class="particles" id="particles"></div>
+        <h1>SecureBank: Σύστημα Ασφαλών Συναλλαγών</h1>
+        <p>Ασφαλές Τραπεζικό Σύστημα με OTP Authentication</p>
+        <div class="team-members">
+            <div class="member">Μάριο Βέλα</div>
+            <div class="member">Θεοδώσης Στάμογλου</div>
+            <div class="member">Άγγελος Κουρουγένης</div>
+        </div>
+    </section>
+
+    <!-- Slide 2: Εισαγωγή & Motivation -->
+    <section class="slide">
+        <h2>Εισαγωγή & Motivation</h2>
+        <ul>
+            <li><strong>Τι αφορά το project:</strong> Ασφαλές τραπεζικό σύστημα με OTP authentication</li>
+            <li><strong>Ποιο πρόβλημα λύνει:</strong> Έλλειψη ασφαλών CLI banking εφαρμογών με 2FA</li>
+            <li><strong>Γιατί το επιλέξαμε:</strong> Ενδιαφέρον για συστήματα ασφαλείας και πρόκληση διασύνδεσης C++/Python</li>
+        </ul>
+    </section>
+
+    <!-- Slide 3: Objective & Scope -->
+    <section class="slide">
+        <h2>Objective & Scope</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>Στόχοι</h3>
+                <ul>
+                    <li>Ασφαλής ταυτοποίηση με OTP</li>
+                    <li>Ολοκληρωμένο σύστημα συναλλαγών</li>
+                    <li>Αυτόματη διαχείριση τόκων</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h3>Δυνατότητες</h3>
+                <ul>
+                    <li>Δημιουργία λογαριασμού</li>
+                    <li>Κατάθεση/Ανάληψη/Μεταφορά</li>
+                    <li>Ιστορικό συναλλαγών</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h3>Περιορισμοί</h3>
+                <ul>
+                    <li>CLI interface</li>
+                    <li>Αποθήκευση σε αρχεία</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: System Architecture & Τεχνολογίες -->
+    <section class="slide">
+        <h2>System Architecture & Τεχνολογίες</h2>
+        
+        <!-- Πάνω μέρος: System Architecture -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">Αρχιτεκτονική Συστήματος</h3>
+            <ul>
+                <li><strong>Core Module:</strong> C++ με OOP αρχιτεκτονική</li>
+                <li><strong>Authentication:</strong> 2FA με email OTP</li>
+                <li><strong>Email Service:</strong> Python script για αποστολή</li>
+                <li><strong>Data Storage:</strong> Αποθήκευση σε αρχεία κειμένου</li>
+            </ul>
+        </div>
+        
+        <!-- Κάτω μέρος: Τεχνολογίες -->
+        <div>
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">Τεχνολογίες</h3>
+            <div class="tech-stack">
+                <div class="tech-item">C++</div>
+                <div class="tech-item">Python</div>
+                <div class="tech-item">STL</div>
+                <div class="tech-item">Regex</div>
+            </div>
+        </div>
+    </section>
+
+     <!-- Slide 5: Workflow Diagram -->
+    <section class="slide">
+        <h2>Workflow Diagram</h2>
+        <div class="workflow-container">
+            <!-- Replace with your actual image path -->
+            <img src="C:\Users\aggel\OneDrive\Desktop\Project_Antikeimenostrafh_Programmatismou\Supporting_Folder\Workflow_Diagram.png" alt="Workflow Diagram" class="workflow-img">
+            <p style="margin-top: 1rem; font-size: 1rem; color: #666;">Διάγραμμα ροής εργασιών του συστήματος</p>
+        </div>
+    </section>
+
+    <!-- Slide 6: Κύρια Λειτουργία & OTP Verification -->
+    <section class="slide">
+        <h2>Κύρια Λειτουργία & OTP Verification</h2>
+        
+        <!-- Πάνω μέρος: Κύρια Λειτουργία -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">Κύρια Λειτουργία</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Δημιουργία Λογαριασμού</h4>
+                    <ul>
+                        <li>Επαλήθευση email</li>
+                        <li>Έλεγχος κωδικού</li>
+                        <li>Αποθήκευση στοιχείων</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>Συναλλαγές</h4>
+                    <ul>
+                        <li>Κατάθεση/Ανάληψη</li>
+                        <li>Μεταφορά χρημάτων</li>
+                        <li>Ιστορικό συναλλαγών</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Κάτω μέρος: OTP Verification -->
+        <div>
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">OTP Verification</h3>
+            <div style="display: flex; gap: 2rem; justify-content: center;">
+                <div style="flex: 1; max-width: 400px;">
+                    <ul>
+                        <li><strong>generateOTP():</strong> 6-ψήφιος τυχαίος κωδικός</li>
+                        <li><strong>sendOTPEmail():</strong> Python script</li>
+                        <li>Χρονικό όριο 1 λεπτού</li>
+                        <li>Μέγιστο όριο 3 προσπαθειών</li>
+                    </ul>
+                </div>
+                <div style="flex: 1; max-width: 400px;">
+                    <div class="code-block" style="margin: 0;">
+                        string generateOTP() {
+                          random_device rd;
+                          uniform_int_distribution<int> 
+                          dist(100000, 999999);
+                          return to_string(dist(rd));
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+   
+
+    <!-- Slide 7: GitHub Repository -->
+<section class="slide">
+    <h2>GitHub Repository</h2>
+    
+    <div style="
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+        
+        <h3 style="color: var(--secondary); margin-bottom: 1.5rem;">Project Source Code</h3>
+        
+        <div style="
+            background: var(--light);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Source Code Pro', monospace;
+            word-break: break-all;
+            margin-bottom: 2rem;
+        ">
+            https://github.com/yourusername/SecureBank
+        </div>
+        
+        <a href="https://github.com/Kourougenis/Project_Antikeimenostrafh_Programmatismou?fbclid=IwY2xjawKjHu9leHRuA2FlbQIxMABicmlkETB3MkFuZ3VUbXFLZlEzMFJHAR5Mg_BuG0cVltKmRsdolMH6kR7hDJsOAxfbjUVqX23V3CQT0v1jYf1S8HG9EQ_aem_yhCZ7y-4qb4RJngrUVaFeg" target="_blank" style="
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        ">
+            Open Repository
+        </a>
+    </div>
+    
+    <p style="color: #666; font-size: 0.9rem;">
+        Κάντε κλικ στον παραπάνω σύνδεσμο ή σαρώστε τον QR code
+    </p>
+</section>
+    <!-- Slide 8: Βίντεο Επίδειξης Κώδικα -->
+<section class="slide" style="padding: 0; background: #2c3e50; overflow: hidden;">
+    <!-- Video Container (Full-screen) -->
+    <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+        <!-- Video Player (Maintain Aspect Ratio) -->
+        <video 
+            controls 
+            autoplay
+            muted
+            style="
+                max-width: 90%;
+                max-height: 90%;
+                outline: none;
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            ">
+            <source src="C:\Users\aggel\OneDrive\Desktop\Project_Antikeimenostrafh_Programmatismou\Supporting_Folder\Demo_video.mp4" type="video/mp4">
+            Your browser does not support HTML5 video. Here's the code snippet:
+            <div class="code-block" style="margin: 20px;">
+                // Διαχείριση Τόκων (C++17)
+                void applyInterest() {
+                  auto now = std::chrono::system_clock::now();
+                  if (isInterestDate(now)) {
+                    std::scoped_lock lock(mtx);
+                    for (auto& acc : accounts) {
+                      double interest = acc.balance * 0.03;
+                      acc.balance += interest;
+                      logTransaction(acc, "INTEREST", interest);
+                    }
+                  }
+                }
+            </div>
+        </video>
+        
+        <!-- Watermark (Optional) -->
+        <div style="
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        ">
+            SecureBank System - Live Code Demo
+        </div>
+    </div>
+</section>
+
+    <!-- Slide 9: AI Integration -->
+    <section class="slide">
+        <h2>Ενσωμάτωση AI</h2>
+        <ul>
+            <li>Βοήθεια σε debugging και refactoring</li>
+            <li>Βελτιστοποίηση Python scripts</li>
+            <li>Όλος ο κώδικας ελεγχόταν χειροκίνητα</li>
+        </ul>
+    </section>
+
+  <!-- Slide 10: Σύγκριση Κώδικα & Απόδοση AI -->
+<section class="slide" style="overflow-y: auto; max-height: 90vh; padding-top: 1rem;">
+    <h2 style="margin-bottom: 1.5rem;">Σύγκριση Κώδικα & Απόδοση AI</h2>
+    
+    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; min-height: 0;">
+        <!-- Αριστερή στήλη -->
+        <div style="flex: 1; min-width: 0;">
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">Handwritten Code</h3>
+            <div class="code-block" style="max-height: 200px; overflow-y: auto;">
+                // Παράδειγμα κώδικα<br>
+                bool Bank::transfer(...) {<br>
+                &nbsp;&nbsp;std::lock_guard<std::mutex> lock(mtx);<br>
+                &nbsp;&nbsp;if (!validateTransaction(...))<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;return false;<br>
+                &nbsp;&nbsp;// Secure transaction logic<br>
+                &nbsp;&nbsp;logTransaction(...);<br>
+                &nbsp;&nbsp;return true;<br>
+                }
+            </div>
+            <ul style="margin-top: 1rem;">
+                <li>Thread-safe με mutex</li>
+                <li>Επαλήθευση πριν εκτέλεση</li>
+                <li>Λεπτομερές error handling</li>
+            </ul>
+        </div>
+        
+        <!-- Δεξιά στήλη -->
+        <div style="flex: 1; min-width: 0;">
+            <h3 style="color: var(--secondary); margin-bottom: 1rem;">AI Generated Code</h3>
+            <div class="code-block" style="max-height: 200px; overflow-y: auto;">
+                // AI suggestion<br>
+                void transfer(Account& a, Account& b, double amt) {<br>
+                &nbsp;&nbsp;a.balance -= amt;<br>
+                &nbsp;&nbsp;b.balance += amt;<br>
+                &nbsp;&nbsp;// No validation<br>
+                }
+            </div>
+            <ul style="margin-top: 1rem;">
+                <li>Χωρίς thread safety</li>
+                <li>Έλλειψη ελέγχων</li>
+                <li>No return status</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Κάτω μέρος με μπάρες -->
+    <div style="background: rgba(236, 240, 241, 0.5); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+        <h3 style="color: var(--secondary); text-align: center; margin-bottom: 1.5rem;">Απόδοση Συστήματος</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span>Ασφάλεια:</span>
+                    <span><strong>85%</strong> vs 25%</span>
+                </div>
+                <div style="height: 10px; background: #e0e0e0; border-radius: 5px;">
+                    <div style="width: 85%; height: 100%; background: var(--success); border-radius: 5px;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span>Ταχύτητα:</span>
+                    <span><strong>65%</strong> vs 90%</span>
+                </div>
+                <div style="height: 10px; background: #e0e0e0; border-radius: 5px;">
+                    <div style="width: 65%; height: 100%; background: var(--secondary); border-radius: 5px;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span>Συντηρησιμότητα:</span>
+                    <span><strong>80%</strong> vs 40%</span>
+                </div>
+                <div style="height: 10px; background: #e0e0e0; border-radius: 5px;">
+                    <div style="width: 80%; height: 100%; background: var(--success); border-radius: 5px;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span>Γραμμές κώδικα:</span>
+                    <span><strong>120</strong> vs 40</span>
+                </div>
+                <div style="height: 10px; background: #e0e0e0; border-radius: 5px;">
+                    <div style="width: 75%; height: 100%; background: var(--accent); border-radius: 5px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <p style="margin-top: 1.5rem; text-align: center; font-style: italic;">
+            "Το AI βοήθησε σε ταχύτητα ανάπτυξης, αλλά η χειροκίνητη υλοποίηση ήταν χρήσιμη για την ασφάλεια"
+        </p>
+    </div>
+</section>
+
+    <!-- Slide 11: Μελλοντικές Βελτιώσεις & Συμπεράσματα -->
+<section class="slide" style="overflow-y: auto; max-height: 90vh; padding: 2rem 4rem;">
+    <div style="min-height: calc(100vh - 150px); display: flex; flex-direction: column; justify-content: space-between;">
+        <!-- Πάνω μέρος: Μελλοντικές Βελτιώσεις -->
+        <div>
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Μελλοντικές Βελτιώσεις</h2>
+            <div class="feature-grid" style="margin-bottom: 2rem;">
+                <div class="feature-card">
+                    <h3>Graphical UI</h3>
+                    <ul>
+                        <li>Qt ή GTK interface</li>
+                        <li>Πιο φιλικό προς τον χρήστη</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>Βάση Δεδομένων</h3>
+                    <ul>
+                        <li>SQLite/MySQL integration</li>
+                        <li>Καλύτερη διαχείριση δεδομένων</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>REST API</h3>
+                    <ul>
+                        <li>Επέκταση για web/mobile</li>
+                        <li>Διασύνδεση με άλλα συστήματα</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Κάτω μέρος: Συμπεράσματα -->
+        <div style="margin-top: auto; padding-top: 2rem; border-top: 2px solid var(--light);">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Συμπεράσματα</h2>
+            <ul style="margin-bottom: 1.5rem;">
+                <li>Επιτυχής υλοποίηση ασφαλούς συστήματος με <strong>OTP authentication</strong></li>
+                <li>Αποτελεσματική χρήση <strong>OOP αρχών</strong> και διασύνδεσης <strong>C++/Python</strong></li>
+            </ul>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <h3 style="color: var(--secondary);">Ευχαριστούμε για την προσοχή σας!</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <nav class="nav-buttons">
+        <button onclick="changeSlide(-1)">⬅ Προηγούμενο</button>
+        <button onclick="changeSlide(1)">Επόμενο ➡</button>
+    </nav>
+
+    <div class="slide-counter" id="slide-counter"></div>
+
+    <script>
+   let currentSlide = 0;
+      const slides = document.querySelectorAll(".slide");
+      const progressBar = document.getElementById("progress");
+      const slideCounter = document.getElementById("slide-counter");
+
+      function updateUI() {
+        const progress = (currentSlide / (slides.length - 1)) * 100;
+        progressBar.style.width = `${progress}%`;
+        slideCounter.textContent = `${currentSlide + 1}/${slides.length}`;
+      }
+
+      function changeSlide(direction) {
+        slides[currentSlide].classList.remove("active");
+        currentSlide = (currentSlide + direction + slides.length) % slides.length;
+        slides[currentSlide].classList.add("active");
+        updateUI();
+        void slides[currentSlide].offsetWidth; // Force reflow
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        slides[0].classList.add("active"); // Ενεργοποίησε την πρώτη slide
+        updateUI();
+        createParticles();
+      });
+
+      function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+          const particle = document.createElement('div');
+          particle.classList.add('particle');
+          particle.style.width = `${Math.random() * 5 + 2}px`;
+          particle.style.height = particle.style.width;
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.top = `${Math.random() * 100}%`;
+          particle.style.opacity = Math.random() * 0.5 + 0.1;
+          particle.style.animation = `float ${Math.random() * 20 + 10}s ease-in-out ${Math.random() * 5}s infinite`;
+          container.appendChild(particle);
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") changeSlide(-1);
+        if (e.key === "ArrowRight") changeSlide(1);
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        updateUI();
+        createParticles();
+      });
+    </script>
+</body>
+</html>
